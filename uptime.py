@@ -15,8 +15,12 @@ def main():
   # Then get the Unix uptime, this is the total calendar time since last boot
   p = subprocess.Popen("uptime".split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   stdout, stderr = p.communicate()
-  uptime_days = stdout.split()[2]
-  uptime_hours, uptime_minutes = stdout.split()[4][:-1].split(":")
+  if 'days' in stdout:
+    uptime_days = stdout.split()[2]
+    uptime_hours, uptime_minutes = stdout.split()[4][:-1].split(":")
+  else:
+    uptime_days = 0
+    uptime_hours, uptime_minutes = stdout.split()[2][:-1].split(":")
   uptime = timedelta(days=int(uptime_days), hours=int(uptime_hours), minutes=int(uptime_minutes))
   print 'uptime_unix_minutes:'+str(int(uptime.total_seconds())/60)
 
