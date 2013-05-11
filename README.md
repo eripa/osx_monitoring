@@ -22,6 +22,21 @@ Then run the individual scripts, example:
     $ ./temps.py
     gpu_diode:55 left_palm_rest:33 cpu_a_proximity:52 battery:34 battery_position_2:34 battery_position_3:33 main_heat_sink_2:53 gpu_1_chip:54 ssd_bay:40 platform_controller_hub:52 main_logic_board:40 main_heat_sink_3:51 cpu_a_diode:59
 
+### Update
+
+It's pretty much the same as installing.. the bootstrap script will simply replace the binaries already on place.
+
+    # go into the script directory
+    cd osx_monitoring
+    # do a git pull to fetch the latest revision
+    git pull
+    # download the latest available binary dependencies
+    ./bootstrap.py
+
+## Contribute
+
+Please feel free to contribute by forking, fixing bugs, writing new functionality, enhance etc. and then send a pull request!
+
 # Credits
 
  * ["tempmonitor" CLI binary from TemperatureMonitor](http://www.bresink.de/osx/0TemperatureMonitor/details.html)
