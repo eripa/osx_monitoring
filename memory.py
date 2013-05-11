@@ -34,4 +34,7 @@ print 'active:%d' % ( vmStats["Pages active"]/1024/1024 ),
 print 'inactive:%d' % ( vmStats["Pages inactive"]/1024/1024 ),
 print 'free:%d' % ( vmStats["Pages free"]/1024/1024 ),
 print 'speculative:%d' % ( vmStats["Pages speculative"]/1024/1024),
+print 'calculated_total:%d' % ( (vmStats["Pages wired down"] + vmStats["Pages active"] \
+                                + vmStats["Pages inactive"] + vmStats["Pages free"] \
+                                + vmStats["Pages speculative"])/1024/1024 ),
 print 'rss_total:%.3f' % ( rssTotal/1024/1024 )
