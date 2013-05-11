@@ -1,6 +1,6 @@
-# OS X HW Monitoring scripts
+# Mac OS X HW Monitoring scripts
 
-A collections of scripts for OS X that can be used to monitor sensors and stats in OS X. The stats can be used to collect data for Cacti/Zabbix etc.
+A collections of scripts for OS X that can be used to monitor sensors and stats in OS X. The stats can be used to collect data for Cacti, Zabbix etc.
 
 The script makes use of two binaries to read the SMC. These are automatically fetched by the boostrap.py script.
 
