@@ -13,13 +13,15 @@ import subprocess
 import os
 import shutil
 import zipfile
+import sys
 
 class TempMonitor(object):
   """docstring for TempMonitor"""
   def __init__(self):
     self.url = 'http://www.bresink.de/osx/0TemperatureMonitor/download.php5'
     self.sha1 = self.getSHA1forTempMonitor(verbose=False)
-    self.archive = "tempmonitor.dmg"
+    self.to_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    self.archive = os.path.join(self.to_dir, "tempmonitor.dmg")
 
   def getSHA1forTempMonitor(self, verbose=False):
     sha1 = None
@@ -45,7 +47,7 @@ class TempMonitor(object):
     br.select_form(name="Download")
     response1 = br.submit()
     print "Downloading TempMonitor..."
-    with open(self.archive, "w") as f:
+    with open(os.path.join(self.to_dir, self.archive), 'w') as f:
       f.write(response1.read())
     if self.sha1:
       # let's verify sha1
@@ -58,25 +60,25 @@ class TempMonitor(object):
 
   def extract(self):
     # First convert the archive to be able to automatically mount it later
-    convert_command = "hdiutil convert -quiet %s -format UDTO -o tempmonitor.cdr" % (self.archive)
-    attach_command = "hdiutil attach -quiet -nobrowse -noverify -noautoopen -mountpoint tempmount tempmonitor.cdr"
-    detach_command = "hdiutil detach -force -quiet tempmount"
+    temp_mount = os.path.join(self.to_dir, "tempmount")
+    self.temp_image = os.path.join(self.to_dir, "tempmonitor.cdr")
+    convert_command = "hdiutil convert -quiet %s -format UDTO -o %s" % (self.archive, self.temp_image)
+    attach_command = "hdiutil attach -quiet -nobrowse -noverify -noautoopen -mountpoint %s %s" % (temp_mount, self.temp_image)
+    detach_command = "hdiutil detach -force -quiet %s" % (temp_mount)
     print 'Attaching image...',
     subprocess.call(shlex.split(convert_command))
     subprocess.call(shlex.split(attach_command))
     print 'Done!'
     # Copy the files that we need..
     print 'Copying tempmonitor binary and detaching image...',
-    shutil.copy("tempmount/TemperatureMonitor.app/Contents/MacOS/tempmonitor", ".")
+    shutil.copy(os.path.join(temp_mount, "TemperatureMonitor.app/Contents/MacOS/tempmonitor"), self.to_dir)
     subprocess.call(shlex.split(detach_command))
     print 'Done!'
 
   def clean(self):
     print "Cleaning archive...",
-    basename = self.archive.split('.')[0]
-    # remove both archives
-    os.remove(basename+'.cdr')
-    os.remove(basename+'.dmg')
+    os.remove(self.archive)
+    os.remove(self.temp_image)
     print "Done!"
 
 class SMCBinary(object):
@@ -85,13 +87,14 @@ class SMCBinary(object):
     self.url = 'http://81.169.182.62/~eidac/software/smcfancontrol2/index.html'
     self.archive = None
     self.skip = False
+    self.to_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
   def download(self):
     main_page = urllib2.urlopen(self.url)
     soup = BeautifulSoup(main_page.read())
     for link in soup.find_all('a'):
       if link.get('href').split('.')[-1] == "zip" and 'smcfancontrol' in link.get('href'):
-        self.archive = link.get('href').split('/')[-1]
+        self.archive = os.path.join(self.to_dir, link.get('href').split('/')[-1])
         print 'Downloading smcfancontrol archive..'
         tmp_dl = urllib2.urlopen(link.get('href'))
     if not self.archive:
@@ -105,7 +108,7 @@ class SMCBinary(object):
   def extract(self):
     if not self.skip:
       print 'Extracting binary from archive..',
-      target_name = os.path.join('.', 'smc')
+      target_name = os.path.join(self.to_dir, 'smc')
       zfile = zipfile.ZipFile(self.archive)
       source = zfile.open('smcFanControl.app/Contents/Resources/smc')
       target = file(target_name, 'wb')
