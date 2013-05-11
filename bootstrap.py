@@ -12,6 +12,7 @@ import shlex
 import subprocess
 import os
 import shutil
+import zipfile
 
 class TempMonitor(object):
   """docstring for TempMonitor"""
@@ -22,7 +23,6 @@ class TempMonitor(object):
 
   def getSHA1forTempMonitor(self, verbose=False):
     sha1 = None
-    download_url = None
     main_page = urllib2.urlopen(self.url)
     soup = BeautifulSoup(main_page.read())
     if verbose: print "Getting SHA1 for TempMonitor download..",
@@ -79,12 +79,61 @@ class TempMonitor(object):
     os.remove(basename+'.dmg')
     print "Done!"
 
+class SMCBinary(object):
+  """docstring for SMCBinary"""
+  def __init__(self):
+    self.url = 'http://81.169.182.62/~eidac/software/smcfancontrol2/index.html'
+    self.archive = None
+    self.skip = False
+
+  def download(self):
+    main_page = urllib2.urlopen(self.url)
+    soup = BeautifulSoup(main_page.read())
+    for link in soup.find_all('a'):
+      if link.get('href').split('.')[-1] == "zip" and 'smcfancontrol' in link.get('href'):
+        self.archive = link.get('href').split('/')[-1]
+        print 'Downloading smcfancontrol archive..'
+        tmp_dl = urllib2.urlopen(link.get('href'))
+    if not self.archive:
+      # couldn't find any archive..
+      print 'Could not find any link to the smcfancontrol zip file.. Try to download it manually using your favorite search engine'
+      self.skip = True
+    else:
+      with open(self.archive, 'w') as f:
+        f.write(tmp_dl.read())
+
+  def extract(self):
+    if not self.skip:
+      print 'Extracting binary from archive..',
+      target_name = os.path.join('.', 'smc')
+      zfile = zipfile.ZipFile(self.archive)
+      source = zfile.open('smcFanControl.app/Contents/Resources/smc')
+      target = file(target_name, 'wb')
+      with source, target:
+        shutil.copyfileobj(source, target)
+      zfile.close()
+      # Make target executable
+      os.chmod(target_name, 0755)
+      print 'Done!'
+    else:
+      print 'No file to extract, skipping!'
+
+  def clean(self):
+    if not self.skip:
+      print "Cleaning archive...",
+      os.remove(self.archive)
+      print "Done!"
+
 
 def main():
   tempmonitor = TempMonitor()
   tempmonitor.download()
   tempmonitor.extract()
   tempmonitor.clean()
+  smcbinary = SMCBinary()
+  smcbinary.download()
+  smcbinary.extract()
+  smcbinary.clean()
 
 
 if __name__ == '__main__':
